@@ -8,20 +8,19 @@ export class UserController {
     constructor(private userService: UserService){}
 
     @Post()
-    async create(@Body() user:User){
-        try {
-            return{
-                success:true,
-                message: "Successfully created the user",
-                data: await this.userService.create(user)
+    create(@Body() user:User):Promise<User | Object>{
+        return this.userService.create(user).then(
+            (user:User) => user
+        ).catch(error => ({ err : error.message}))
+    }
+
+    @Post('login')
+    login(@Body() user:User):Promise<Object>{
+        return this.userService.login(user).then(
+            (jwt:string) => {
+                return { access_token : jwt }
             }
-        } catch (error) {
-            return{
-                success:false,
-                message: "Couldn't create user",
-                error:error
-            }
-        }
+        )
     }
 
     @Get(':id')

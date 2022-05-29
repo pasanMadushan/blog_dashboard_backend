@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { from } from 'node-fetch/node_modules/form-data';
-import { Observable } from 'rxjs';
+import { Observable, pipe, map } from 'rxjs';
+import { AuthService } from 'src/auth/service/auth.service';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../models/user.entity';
 import { User } from '../models/user.interface';
@@ -9,36 +9,54 @@ import { User } from '../models/user.interface';
 @Injectable()
 export class UserService {
     constructor(
-        @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>
+        @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
+        private authService:AuthService
     ){}
 
-    async create(user:User): Promise<User>{
-        try{
-            return await this.userRepository.save(user);
-        }
-        catch(err){
-            throw err;
-        }   
+
+    create(user:User){
+            return this.authService.hashPassword(user.password).then(
+                (newPassword)=>{
+                    const newUser = new UserEntity();
+                    newUser.name = user.name;
+                    newUser.username = user.username;
+                    newUser.role = user.role;
+                    newUser.email = user.email;
+                    newUser.password = newPassword;
+
+                    return this.userRepository.save(newUser).then(
+                        (user:User) =>{
+                            const {password, ...result} = user;
+                            return result;
+                        }
+                    ) 
+                    .catch(error => {throw error;})
+                }
+            )
+            .catch(error => {throw error;})
     }
 
-    async findOne(id:number) : Promise<User>{ 
-        try{
-            return await this.userRepository.findOne(id);
-        }
-        catch(err){
-            throw err;
-        }  
-    }
 
-    async findAll() : Promise<User[]>{ 
-        try{
-            return await this.userRepository.find();
+    findOne(id:number) : Promise<User>{ 
+        return this.userRepository.findOne(id).then(
+            (user:User)=>{
+                const {password, ...result} = user;
+                return result; 
+            }
+        ).catch( error =>{throw error});
         }
-        catch(err){
-            throw err;
-        }  
-    }
-    
+
+
+    findAll() : Promise<User[]>{ 
+            return this.userRepository.find().then(
+                (users:User[]) =>{
+                    users.forEach(function (v) { delete v.password });
+                    return users;
+                }
+            ).catch( error =>{throw error});
+        }
+
+
     async deleteOne(id:number) : Promise<any>{ 
         try{
             return await this.userRepository.delete(id);
@@ -56,4 +74,45 @@ export class UserService {
             throw err;
         }  
     }
+    
+    login(user:User){
+        return this.validateUser(user.email, user.password).then(
+            (user:User) =>{
+                if (user){
+                    return this.authService.generateJWT(user).then(
+                        jwt => jwt
+                    )
+                }else{
+                    return 'Wrong Credentials'
+                }
+            }
+        )
+    }
+
+    validateUser(email:string, password:string):Promise<User>{
+        return this.findByMail(email).then(
+            (user:User)=>{
+                return this.authService.comparePassword(password, user.password).then(
+                    (match:boolean) =>{
+                        if (match){
+                            const {password, ...result} = user;
+                            return result;
+                        }
+                    }
+                )
+            }
+        )
+    }
+
+    async findByMail(email:string) : Promise<User>{ 
+        try{
+            return await this.userRepository.findOne({email});
+        }
+        catch(err){
+            throw err;
+        }  
+    }
+
+
+
 }

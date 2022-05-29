@@ -17,18 +17,18 @@ export class AuthService {
         }
     }
 
-    hashPassword(password:string){
+    async hashPassword(password:string){
         try {
-            bcrypt.hash(password, 12)
+            return await bcrypt.hash(password, 12)
         } 
         catch (error) {
             throw error
         }
     }
 
-    comparePassword(password:string, hash:string){
+    async comparePassword(password:string, hash:string):Promise<any | boolean>{
         try {
-            bcrypt.compare(password,hash);
+            return await bcrypt.compare(password,hash);
         } 
         catch (error) {
             throw error
