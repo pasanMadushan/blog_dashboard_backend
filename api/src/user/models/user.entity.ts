@@ -1,5 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert } from "typeorm";
 
+export enum UserRole{
+    ADMIN = 'admin',
+    EDITOR = 'editor'
+}
+
 @Entity()
 export class UserEntity{
 
@@ -12,8 +17,8 @@ export class UserEntity{
     @Column({ unique:true })
     username : string;
 
-    @Column()
-    role : string;
+    @Column({ type:'enum', enum:UserRole , default: UserRole.EDITOR })
+    role : UserRole;
 
     @Column({ unique:true })
     email : string;
