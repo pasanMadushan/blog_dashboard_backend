@@ -109,6 +109,14 @@ export class UserService {
         )
     }
 
+    checkUserStatus(email:string):Promise<boolean>{
+        return this.findByMail(email).then(
+            (user:User) =>{
+                return user.active;
+            }
+        )
+    }
+
     async findByMail(email:string) : Promise<User>{ 
         try{
             return await this.userRepository.findOneBy({email});

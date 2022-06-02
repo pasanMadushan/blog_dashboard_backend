@@ -22,9 +22,17 @@ export class UserController {
 
     @Post('login')
     login(@Body() user:User):Promise<Object>{
-        return this.userService.login(user).then(
-            (jwt:string) => {
-                return { access_token : jwt }
+        return this.userService.checkUserStatus(user.email).then(
+            (status:boolean) =>{
+                if (status){
+                    return this.userService.login(user).then(
+                        (jwt:string) => {
+                            return { access_token : jwt }
+                        }
+                    )
+                }else{
+                    return {status: false, msg:"user is not active" }
+                }
             }
         )
     }
