@@ -7,4 +7,5 @@ export interface User{
     role? : UserRole;
     email?: string;
     password? : string;
+    active? : boolean;
 }

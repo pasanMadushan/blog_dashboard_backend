@@ -30,5 +30,7 @@ export class UserEntity{
     emailToLowerCase(){
         this.email = this.email.toLowerCase();
     }
-    
+
+    @Column({default: false})
+    active: boolean;  
 }
