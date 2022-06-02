@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { hasRoles } from 'src/auth/decorator/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-guards';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { UserRole } from '../models/user.entity';
 import { User } from '../models/user.interface';
 import { UserService } from '../service/user.service';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Controller('user')
 export class UserController {
@@ -44,23 +45,22 @@ export class UserController {
         }
     }
 
-    @hasRoles(UserRole.ADMIN)
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Get()
-    async findAll(){
-        try {
-            return{
-                success:true,
-                message: "Successfully fetched users",
-                data: await this.userService.findAll()
-            }
-        } catch (error) {
-            return{
-                success:false,
-                message: "Couldn't fetch users",
-                error:error
-            }
-        }
+
+    // get all users with pagination
+
+    // @hasRoles(UserRole.ADMIN)
+    // @UseGuards(JwtAuthGuard, RolesGuard)
+    @Get('')
+    async index(
+        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+        @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+        ): Promise<Pagination<User>> {
+            limit = limit > 100 ? 100 : limit;
+            return this.userService.paginate({
+                page,
+                limit,
+                route: '/user',
+            });
     }
 
     @Delete(':id')

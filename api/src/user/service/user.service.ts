@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Observable, pipe, map } from 'rxjs';
 import { AuthService } from 'src/auth/service/auth.service';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../models/user.entity';
 import { User } from '../models/user.interface';
+import {
+    paginate,
+    Pagination,
+    IPaginationOptions,
+  } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class UserService {
@@ -113,6 +117,16 @@ export class UserService {
             throw err;
         }  
     }
+
+    async paginate(options: IPaginationOptions): Promise<Pagination<User>> {
+        return paginate<User>(this.userRepository, options).then(
+            (users:Pagination<User>) =>{
+                users.items.forEach(function (v) { delete v.password });
+                return users;
+            }
+        )
+        .catch( error =>{throw error});
+      }
 
     
 }
