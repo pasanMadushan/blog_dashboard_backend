@@ -84,6 +84,7 @@ export class UserController {
     @Put(':id')
     async updateOne(@Param() params, @Body() user:User){
         try {
+            delete(user.role)
             return{
                 success:true,
                 message: "Successfully updated the user",
