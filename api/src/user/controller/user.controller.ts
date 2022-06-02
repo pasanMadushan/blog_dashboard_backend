@@ -99,6 +99,25 @@ export class UserController {
         }
     }
 
+    @hasRoles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard,RolesGuard)
+    @Put('update-role/:id')
+    async makeAdmin(@Param() params){
+        try {
+            return{
+                success:true,
+                message: "Successfully make the user as admin",
+                data: await this.userService.updateOne(params.id, {role:UserRole.ADMIN})
+            }
+        } catch (error) {
+            return{
+                success:false,
+                message: "Couldn't update the user",
+                error:error
+            }
+        }
+    }
+
 
 
 
