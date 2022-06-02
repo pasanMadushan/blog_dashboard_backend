@@ -38,7 +38,7 @@ export class UserService {
 
 
     findOne(id:number) : Promise<User>{ 
-        return this.userRepository.findOne(id).then(
+        return this.userRepository.findOneBy({id}).then(
             (user:User)=>{
                 const {password, ...result} = user;
                 return result; 
@@ -78,6 +78,7 @@ export class UserService {
     login(user:User){
         return this.validateUser(user.email, user.password).then(
             (user:User) =>{
+
                 if (user){
                     return this.authService.generateJWT(user).then(
                         jwt => jwt
@@ -106,13 +107,12 @@ export class UserService {
 
     async findByMail(email:string) : Promise<User>{ 
         try{
-            return await this.userRepository.findOne({email});
+            return await this.userRepository.findOneBy({email});
         }
         catch(err){
             throw err;
         }  
     }
 
-
-
+    
 }
