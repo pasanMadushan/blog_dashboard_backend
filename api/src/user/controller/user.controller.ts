@@ -14,6 +14,7 @@ export class UserController {
 
     @Post()
     create(@Body() user:User):Promise<User | Object>{
+        delete(user.role);
         return this.userService.create(user).then(
             (user:User) => user
         ).catch(error => ({ err : error.message}))
