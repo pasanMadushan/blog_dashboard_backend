@@ -118,6 +118,25 @@ export class UserController {
         }
     }
 
+    @hasRoles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard,RolesGuard)
+    @Put('activate-user/:id')
+    async activateUser(@Param() params){
+        try {
+            return{
+                success:true,
+                message: "Successfully activated the user",
+                data: await this.userService.updateOne(params.id, {active:true})
+            }
+        } catch (error) {
+            return{
+                success:false,
+                message: "Couldn't activate the user",
+                error:error
+            }
+        }
+    }
+
 
 
 
