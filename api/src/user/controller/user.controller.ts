@@ -1,4 +1,4 @@
-import { Body, Controller, DefaultValuePipe, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Delete, Get, HttpServer, HttpStatus, Param, ParseIntPipe, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { hasRoles } from 'src/auth/decorator/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-guards';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
@@ -21,7 +21,7 @@ export class UserController {
     }
 
     @Post('login')
-    async login(@Body() user:User){
+    async login(@Body() user:User, @Res() res){
 
         let tempUser = await this.userService.findByMail(user.email)
         if (tempUser){
@@ -29,28 +29,14 @@ export class UserController {
             if (userStatus){
                 let loginUser = await this.userService.login(user)
                 if (loginUser == 'Wrong Credentials'){
-                    return {
-                        success:false,
-                        message: "Wrong password",
-                    } 
+                    return res.status(HttpStatus.BAD_REQUEST).send("Wrong password")
                 }
-                return {
-                    success:true,
-                    message: "Successfully Logged In",
-                    data: loginUser
-                }
+                return  res.status(HttpStatus.OK).json({"token":loginUser})
             }
-            return {
-                success:false,
-                message: "User inactive",
-            }
+            return res.status(HttpStatus.UNAUTHORIZED).send("User inactive");
         }
-        return {
-            success:false,
-            message: "User not exist",
-        }
+        return res.status(HttpStatus.BAD_REQUEST).send("User not exist");
     }
-
 
     @Get(':id')
     async findOne(@Param() params){

@@ -82,7 +82,6 @@ export class UserService {
     login(user:User){
         return this.validateUser(user.email, user.password).then(
             (user:User) =>{
-
                 if (user){
                     return this.authService.generateJWT(user).then(
                         jwt => jwt
