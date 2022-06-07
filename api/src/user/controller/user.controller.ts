@@ -21,21 +21,36 @@ export class UserController {
     }
 
     @Post('login')
-    login(@Body() user:User):Promise<Object>{
-        return this.userService.checkUserStatus(user.email).then(
-            (status:boolean) =>{
-                if (status){
-                    return this.userService.login(user).then(
-                        (jwt:string) => {
-                            return { access_token : jwt }
-                        }
-                    )
-                }else{
-                    return {status: false, msg:"user is not active" }
+    async login(@Body() user:User){
+
+        let tempUser = await this.userService.findByMail(user.email)
+        if (tempUser){
+            let userStatus = await this.userService.checkUserStatus(user.email)
+            if (userStatus){
+                let loginUser = await this.userService.login(user)
+                if (loginUser == 'Wrong Credentials'){
+                    return {
+                        success:false,
+                        message: "Wrong password",
+                    } 
+                }
+                return {
+                    success:true,
+                    message: "Successfully Logged In",
+                    data: loginUser
                 }
             }
-        )
+            return {
+                success:false,
+                message: "User inactive",
+            }
+        }
+        return {
+            success:false,
+            message: "User not exist",
+        }
     }
+
 
     @Get(':id')
     async findOne(@Param() params){
